@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Airbnb Room Type Predictor — Every Stay Has a Pattern</title>
+<meta name="description" content="A machine learning project by Burhan Arshad that predicts an Airbnb listing's room type from location, price, reviews and availability.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#predictor">Skip to predictor</a>
+
+<header class="bar" id="top">
+  <a class="mark" href="#home" aria-label="Stay Pattern, home"><span>Stay</span><i>/</i><em>Pattern</em></a>
+  <button class="burger" id="burger" aria-expanded="false" aria-controls="menu"><span class="sr">Menu</span><b></b><b></b></button>
+  <nav id="menu" aria-label="Primary">
+    <a href="#home">Home</a><a href="#predictor">Predictor</a><a href="#methodology">Methodology</a><a href="#project">Project</a>
+    <a class="go" href="#predictor">Predict a room</a>
+  </nav>
+  <p class="status" id="status" data-state="checking" role="status"><i></i><span id="status-text">Checking API</span></p>
+</header>
+
+<main>
+<section class="hero" id="home">
+  <div class="hero-copy">
+    <p class="coord mono">Listing survey · 10 features · 1 prediction</p>
+    <h1>Every Stay<br>Has a <em>Pattern.</em></h1>
+    <p class="lede">An intelligent exploration of Airbnb listing characteristics, location, pricing, reviews, and availability — translated into a machine learning room-type prediction.</p>
+    <div class="cta">
+      <a class="btn solid" href="#predictor">Explore the Predictor</a>
+      <a class="btn line" href="#methodology">How It Works</a>
+    </div>
+    <p class="by mono">An ML project by <a href="https://burhan.cypherai.tech" target="_blank" rel="noopener noreferrer">Burhan Arshad</a></p>
+  </div>
+  <figure class="plate" aria-hidden="true">
+    <svg viewBox="0 0 480 560" role="img" focusable="false">
+      <defs><pattern id="g" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="currentColor" stroke-width=".5" opacity=".25"/></pattern></defs>
+      <rect width="480" height="560" fill="url(#g)"/>
+      <g class="facade" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M120 520V160h200v360M320 230h60v290M60 520h380"/>
+        <path d="M120 160l100-50 100 50"/>
+        <path class="win" d="M150 200h40v50h-40zM230 200h40v50h-40zM150 290h40v50h-40zM230 290h40v50h-40zM150 380h40v50h-40zM230 380h40v50h-40zM335 260h30v40h-30zM335 340h30v40h-30zM205 460h50v60h-50z"/>
+      </g>
+      <g class="xhair"><path d="M0 330H480M400 0V560" stroke="var(--brick)" stroke-width="1" stroke-dasharray="3 5"/><circle cx="400" cy="330" r="7" fill="none" stroke="var(--brick)" stroke-width="1.5"/></g>
+    </svg>
+    <figcaption class="mono">Fig. 1 — Stylised elevation on a coordinate grid. Illustrative, not a real listing.</figcaption>
+  </figure>
+</section>
+
+<section class="work" id="predictor">
+  <header class="sec-head">
+    <h2>The predictor</h2>
+    <p>Enter a listing's ten recorded features. The model returns a room type and the probability it assigns to every class.</p>
+  </header>
+  <div class="grid">
+    <form id="form" novalidate aria-describedby="form-msg">
+      <fieldset>
+        <legend>Where it is</legend>
+        <div class="row2">
+          <div class="f"><label for="neighbourhood_group">Neighbourhood group</label><input id="neighbourhood_group" name="neighbourhood_group" type="text" required autocomplete="off" aria-describedby="neighbourhood_group-h neighbourhood_group-e"><small id="neighbourhood_group-h">Borough, e.g. Manhattan</small><span class="err" id="neighbourhood_group-e" aria-live="polite"></span></div>
+          <div class="f"><label for="neighbourhood">Neighbourhood</label><input id="neighbourhood" name="neighbourhood" type="text" required autocomplete="off" aria-describedby="neighbourhood-h neighbourhood-e"><small id="neighbourhood-h">Area name, e.g. Midtown</small><span class="err" id="neighbourhood-e" aria-live="polite"></span></div>
+          <div class="f"><label for="latitude">Latitude</label><input id="latitude" name="latitude" type="number" step="any" min="-90" max="90" required inputmode="decimal" aria-describedby="latitude-h latitude-e"><small id="latitude-h">−90 to 90</small><span class="err" id="latitude-e" aria-live="polite"></span></div>
+          <div class="f"><label for="longitude">Longitude</label><input id="longitude" name="longitude" type="number" step="any" min="-180" max="180" required inputmode="decimal" aria-describedby="longitude-h longitude-e"><small id="longitude-h">−180 to 180</small><span class="err" id="longitude-e" aria-live="polite"></span></div>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>What it offers</legend>
+        <div class="row2">
+          <div class="f"><label for="price">Price per night</label><input id="price" name="price" type="number" step="any" min="0" required data-gt0 inputmode="decimal" aria-describedby="price-h price-e"><small id="price-h">Greater than 0</small><span class="err" id="price-e" aria-live="polite"></span></div>
+          <div class="f"><label for="minimum_nights">Minimum nights</label><input id="minimum_nights" name="minimum_nights" type="number" step="1" min="1" max="365" required data-int inputmode="numeric" aria-describedby="minimum_nights-h minimum_nights-e"><small id="minimum_nights-h">Whole number, 1 to 365</small><span class="err" id="minimum_nights-e" aria-live="polite"></span></div>
+          <div class="f"><label for="availability_365">Availability (days a year)</label><input id="availability_365" name="availability_365" type="number" step="1" min="0" max="365" required data-int inputmode="numeric" aria-describedby="availability_365-h availability_365-e"><small id="availability_365-h">Whole number, 0 to 365</small><span class="err" id="availability_365-e" aria-live="polite"></span></div>
+          <div class="f"><label for="calculated_host_listings_count">Host's listings</label><input id="calculated_host_listings_count" name="calculated_host_listings_count" type="number" step="1" min="0" required data-int inputmode="numeric" aria-describedby="calculated_host_listings_count-h calculated_host_listings_count-e"><small id="calculated_host_listings_count-h">Whole number, 0 or more</small><span class="err" id="calculated_host_listings_count-e" aria-live="polite"></span></div>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>How it is reviewed</legend>
+        <div class="row2">
+          <div class="f"><label for="number_of_reviews">Number of reviews</label><input id="number_of_reviews" name="number_of_reviews" type="number" step="1" min="0" required data-int inputmode="numeric" aria-describedby="number_of_reviews-h number_of_reviews-e"><small id="number_of_reviews-h">Whole number, 0 or more</small><span class="err" id="number_of_reviews-e" aria-live="polite"></span></div>
+          <div class="f"><label for="reviews_per_month">Reviews per month</label><input id="reviews_per_month" name="reviews_per_month" type="number" step="any" min="0" required inputmode="decimal" aria-describedby="reviews_per_month-h reviews_per_month-e"><small id="reviews_per_month-h">0 or more</small><span class="err" id="reviews_per_month-e" aria-live="polite"></span></div>
+        </div>
+      </fieldset>
+      <p class="form-msg" id="form-msg" role="status" aria-live="polite"></p>
+      <div class="actions">
+        <button class="btn solid" type="submit" id="submit"><span class="spin" aria-hidden="true"></span><span id="submit-label">Predict Room Type</span></button>
+        <button class="btn line" type="button" id="demo">Load Demo Data</button>
+        <button class="btn quiet" type="button" id="clear">Clear Form</button>
+      </div>
+    </form>
+
+    <aside class="sheet" aria-label="Listing sheet">
+      <h3>Listing sheet</h3>
+      <p class="mono note">Live readout of what you have typed. Nothing is sent until you predict.</p>
+      <dl id="sheet">
+        <div><dt>Group</dt><dd data-k="neighbourhood_group"></dd></div>
+        <div><dt>Neighbourhood</dt><dd data-k="neighbourhood"></dd></div>
+        <div class="pair"><dt>Coordinates</dt><dd id="coords"></dd></div>
+        <div><dt>Price</dt><dd data-k="price"></dd></div>
+        <div><dt>Minimum nights</dt><dd data-k="minimum_nights"></dd></div>
+        <div><dt>Availability</dt><dd data-k="availability_365"></dd></div>
+        <div><dt>Host listings</dt><dd data-k="calculated_host_listings_count"></dd></div>
+        <div><dt>Reviews</dt><dd data-k="number_of_reviews"></dd></div>
+        <div><dt>Reviews / month</dt><dd data-k="reviews_per_month"></dd></div>
+      </dl>
+      <p class="mono note" id="demo-flag" hidden>Demo preset loaded. These are sample inputs, not model output.</p>
+    </aside>
+  </div>
+
+  <section class="result" id="result" aria-labelledby="result-h" tabindex="-1" hidden>
+    <p class="mono note">Predicted room type</p>
+    <h3 id="result-h" class="verdict"></h3>
+    <h4>Model Class Probabilities</h4>
+    <ul class="bars" id="bars"></ul>
+    <p class="note small">Model-estimated class probabilities from the backend response. They are not calibrated confidence scores or guarantees.</p>
+    <div class="actions">
+      <button class="btn solid" type="button" id="again">Predict Again</button>
+      <button class="btn line" type="button" id="copy">Copy Results</button>
+    </div>
+  </section>
+</section>
+
+<section class="method" id="methodology">
+  <header class="sec-head">
+    <h2>Methodology</h2>
+    <p>One request, six stages. Each hand-off below is something this project actually does.</p>
+  </header>
+  <ol class="flow">
+    <li><b>Listing features</b><span>Ten values typed into the form.</span></li>
+    <li><b>Frontend validation</b><span>Ranges and types checked before anything is sent.</span></li>
+    <li><b>FastAPI</b><span>Receives JSON at <code>/predict</code> and validates it again.</span></li>
+    <li><b>Scikit-learn pipeline</b><span>Preprocessing and classifier produce class probabilities.</span></li>
+    <li><b>Prediction response</b><span>Predicted class, class names, probabilities.</span></li>
+    <li><b>Results visualization</b><span>Response is validated, then drawn as bars.</span></li>
+  </ol>
+  <dl class="stack">
+    <div><dt>HTML, CSS, Vanilla JavaScript</dt><dd>The whole interface in three files, with no framework or build step.</dd></div>
+    <div><dt>Fetch API</dt><dd>Checks the API at <code>/</code> for the status light and posts listings to <code>/predict</code>.</dd></div>
+    <div><dt>FastAPI</dt><dd>Serves the endpoints and enforces the input schema.</dd></div>
+    <div><dt>Pandas</dt><dd>Arranges each request into a one-row DataFrame with the model's columns.</dd></div>
+    <div><dt>Scikit-learn</dt><dd>The trained pipeline that classifies the listing and estimates class probabilities.</dd></div>
+    <div><dt>Joblib</dt><dd>Loads the serialized pipeline when the server starts.</dd></div>
+  </dl>
+</section>
+</main>
+
+<footer class="project" id="project">
+  <div class="who">
+    <p class="mono note">About the project</p>
+    <h2>Burhan Arshad</h2>
+    <p class="role">Computer Science Student | AI &amp; Machine Learning Developer</p>
+    <p class="bio">I build intelligent applications and explore Machine Learning, Deep Learning, Generative AI, Natural Language Processing, Computer Vision, and modern software engineering.</p>
+    <p class="links"><a href="https://burhan.cypherai.tech" target="_blank" rel="noopener noreferrer">Portfolio</a><a href="https://github.com/burhan-arshad" target="_blank" rel="noopener noreferrer">GitHub</a></p>
+  </div>
+  <p class="legal mono">Independent student project. Not affiliated with Airbnb. Predictions come from a trained model and are not verified for accuracy.</p>
+  <p class="foot mono">Designed &amp; Developed by Burhan Arshad · © <span id="year"></span></p>
+</footer>
+<script src="script.js"></script>
+</body>
+</html>
