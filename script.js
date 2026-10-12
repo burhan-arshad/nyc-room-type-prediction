@@ -189,7 +189,20 @@ function renderResult({ label, classes, probs }) {
   requestAnimationFrame(() => requestAnimationFrame(() => {
     if (run !== resultRun) return;
     fills.forEach((f, i) => { f.style.transitionDelay = i * 90 + "ms"; f.style.transform = "scaleX(" + probs[i] + ")"; });
+    list.querySelectorAll(".val").forEach((el, i) => countUp(el, probs[i], i * 90, run));
   }));
+}
+function countUp(el, target, delay, run) {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  el.textContent = pct(0);
+  const t0 = performance.now() + delay;
+  const tick = (t) => {
+    if (run !== resultRun) return;
+    const k = Math.min(Math.max((t - t0) / 900, 0), 1);
+    el.textContent = pct(k === 1 ? target : target * (1 - Math.pow(1 - k, 3)));
+    if (k < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
 }
 async function copyResults() {
   if (!lastResult) return;
@@ -207,6 +220,7 @@ async function copyResults() {
 /* ---------- Form actions ---------- */
 function loadDemo() {
   for (const n of FIELDS) { form.elements[n].value = DEMO[n]; validateField(form.elements[n]); }
+  syncSuggestions();
   $("demo-flag").hidden = false;
   updateSheet();
   say("Demo preset loaded. These are sample inputs, not model output.");
@@ -218,7 +232,7 @@ function clearForm() {
   $("demo-flag").hidden = true;
   $("result").hidden = true;
   resultRun++; lastResult = null;
-  updateSheet(); say("");
+  syncSuggestions(); updateSheet(); say("");
   form.elements.neighbourhood_group.focus();
 }
 function predictAgain() {
@@ -249,6 +263,59 @@ function setupReveal() {
   window.addEventListener("pagehide", () => io.disconnect(), { once: true });
 }
 
+/* ---------- Suggestions (NYC Airbnb 2019 boroughs and neighbourhoods) ---------- */
+const NYC = {"Bronx": "Allerton|City Island|Claremont Village|Clason Point|Co-op City|Concourse|Concourse Village|Eastchester|Edenwald|Fieldston|Fordham|High Bridge|Hunts Point|Kingsbridge|Longwood|Melrose|Morris Heights|Morris Park|Mott Haven|Mount Eden|Mount Hope|North Riverdale|Norwood|Parkchester|Pelham Bay|Pelham Gardens|Port Morris|Riverdale|Schuylerville|Soundview|Spuyten Duyvil|Throgs Neck|Tremont|Unionport|University Heights|Wakefield|West Farms|Williamsbridge|Woodlawn", "Brooklyn": "Bath Beach|Bay Ridge|Bedford-Stuyvesant|Bensonhurst|Bergen Beach|Boerum Hill|Borough Park|Brighton Beach|Brooklyn Heights|Brownsville|Bushwick|Canarsie|Carroll Gardens|Clinton Hill|Cobble Hill|Columbia St|Coney Island|Crown Heights|Cypress Hills|Downtown Brooklyn|DUMBO|Dyker Heights|East Flatbush|East New York|Flatbush|Flatlands|Fort Greene|Fort Hamilton|Gowanus|Gravesend|Greenpoint|Greenwood Heights|Kensington|Manhattan Beach|Marine Park|Midwood|Mill Basin|Navy Yard|Park Slope|Prospect Heights|Prospect-Lefferts Gardens|Red Hook|Sea Gate|Sheepshead Bay|South Slope|Sunset Park|Vinegar Hill|Williamsburg|Windsor Terrace", "Manhattan": "Battery Park City|Chelsea|Chinatown|Civic Center|East Harlem|East Village|Financial District|Flatiron District|Gramercy|Greenwich Village|Harlem|Hell's Kitchen|Inwood|Kips Bay|Little Italy|Lower East Side|Marble Hill|Midtown|Morningside Heights|Murray Hill|NoHo|Nolita|Roosevelt Island|SoHo|Stuyvesant Town|Theater District|Tribeca|Two Bridges|Upper East Side|Upper West Side|Washington Heights|West Village", "Queens": "Arverne|Astoria|Bay Terrace|Bayside|Belle Harbor|Bellerose|Breezy Point|Briarwood|Cambria Heights|Clearview|College Point|Corona|Douglaston|East Elmhurst|Edgemere|Elmhurst|Far Rockaway|Flushing|Forest Hills|Fresh Meadows|Glen Oaks|Glendale|Hollis|Holliswood|Howard Beach|Jackson Heights|Jamaica|Jamaica Estates|Jamaica Hills|Kew Gardens|Kew Gardens Hills|Laurelton|Little Neck|Long Island City|Maspeth|Middle Village|Neponsit|Ozone Park|Queens Village|Rego Park|Richmond Hill|Ridgewood|Rockaway Beach|Rosedale|Springfield Gardens|St. Albans|Sunnyside|Whitestone|Woodhaven|Woodside", "Staten Island": "Arden Heights|Arrochar|Bay Terrace|Bull's Head|Castleton Corners|Clifton|Concord|Dongan Hills|Eltingville|Emerson Hill|Fort Wadsworth|Graniteville|Grant City|Grasmere|Great Kills|Grymes Hill|Huguenot|Jersey Street|Lighthouse Hill|Mariners Harbor|Midland Beach|New Brighton|New Dorp|New Springville|Oakwood|Port Richmond|Prince's Bay|Randall Manor|Richmondtown|Rosebank|Rossville|Shore Acres|Silver Lake|South Beach|St. George|Stapleton|Todt Hill|Tompkinsville|Tottenville|West Brighton|Westerleigh|Willowbrook|Woodrow"};
+const HOODS = Object.fromEntries(Object.entries(NYC).map(([g, s]) => [g, s.split("|")]));
+const lc = (s) => s.trim().toLowerCase();
+const keyFor = (g) => Object.keys(HOODS).find((k) => lc(k) === lc(g)) || "";
+const inGroup = (key, hood) => !!key && HOODS[key].some((n) => lc(n) === lc(hood));
+function fillList(id, items) {
+  $(id).replaceChildren(...items.map((v) => { const o = document.createElement("option"); o.value = v; return o; }));
+}
+function syncSuggestions() {
+  const key = keyFor(form.elements.neighbourhood_group.value);
+  fillList("dl-hood", (key ? HOODS[key] : Object.values(HOODS).flat()).slice().sort());
+}
+function autoPair(commit) {
+  const grp = form.elements.neighbourhood_group, hood = form.elements.neighbourhood.value;
+  const cur = keyFor(grp.value);
+  if (!hood.trim() || inGroup(cur, hood)) return;
+  const match = Object.keys(HOODS).find((k) => inGroup(k, hood));
+  if (match && (commit || !grp.value.trim())) {
+    grp.value = match; validateField(grp); syncSuggestions(); updateSheet();
+  }
+}
+function setupSuggestions() {
+  fillList("dl-group", Object.keys(HOODS));
+  syncSuggestions();
+  const grp = form.elements.neighbourhood_group;
+  grp.addEventListener("input", syncSuggestions);
+  grp.addEventListener("change", () => { const k = keyFor(grp.value); if (k) grp.value = k; syncSuggestions(); updateSheet(); });
+  form.elements.neighbourhood.addEventListener("input", () => autoPair(false));
+  form.elements.neighbourhood.addEventListener("change", () => {
+    const hood = form.elements.neighbourhood, key = Object.keys(HOODS).find((k) => inGroup(k, hood.value));
+    if (key) { const own = HOODS[key].find((n) => lc(n) === lc(hood.value)); hood.value = own; }
+    autoPair(true); updateSheet();
+  });
+}
+
+/* ---------- Scroll progress and header ---------- */
+function setupScroll() {
+  const bar = document.querySelector(".bar"), prog = $("progress");
+  let last = scrollY, queued = false;
+  addEventListener("scroll", () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      const y = scrollY, max = document.documentElement.scrollHeight - innerHeight;
+      prog.style.transform = "scaleX(" + (max > 0 ? y / max : 0) + ")";
+      const open = $("burger").getAttribute("aria-expanded") === "true";
+      bar.classList.toggle("hide", y > last && y > 240 && !open);
+      last = y; queued = false;
+    });
+  }, { passive: true });
+}
+
 /* ---------- Init ---------- */
 function init() {
   $("year").textContent = new Date().getFullYear();
@@ -263,7 +330,7 @@ function init() {
   $("clear").addEventListener("click", clearForm);
   $("again").addEventListener("click", predictAgain);
   $("copy").addEventListener("click", copyResults);
-  setupNav(); setupReveal(); updateSheet(); checkApi();
+  setupNav(); setupReveal(); setupSuggestions(); setupScroll(); updateSheet(); checkApi();
   window.addEventListener("pagehide", () => controllers.forEach((c) => c.abort()), { once: true });
 }
 init();

@@ -12,6 +12,7 @@
 </head>
 <body>
 <a class="skip" href="#predictor">Skip to predictor</a>
+<div class="progress" id="progress" aria-hidden="true"></div>
 
 <header class="bar" id="top">
   <a class="mark" href="#home" aria-label="Stay Pattern, home"><span>Stay</span><i>/</i><em>Pattern</em></a>
@@ -27,7 +28,7 @@
 <section class="hero" id="home">
   <div class="hero-copy">
     <p class="coord mono">Listing survey · 10 features · 1 prediction</p>
-    <h1>Every Stay<br>Has a <em>Pattern.</em></h1>
+    <h1 aria-label="Every Stay Has a Pattern."><span class="w" style="--i:0">Every</span> <span class="w" style="--i:1">Stay</span><br><span class="w" style="--i:2">Has</span> <span class="w" style="--i:3">a</span> <em class="w" style="--i:4">Pattern.</em></h1>
     <p class="lede">An intelligent exploration of Airbnb listing characteristics, location, pricing, reviews, and availability — translated into a machine learning room-type prediction.</p>
     <div class="cta">
       <a class="btn solid" href="#predictor">Explore the Predictor</a>
@@ -44,11 +45,13 @@
         <path d="M120 160l100-50 100 50"/>
         <path class="win" d="M150 200h40v50h-40zM230 200h40v50h-40zM150 290h40v50h-40zM230 290h40v50h-40zM150 380h40v50h-40zM230 380h40v50h-40zM335 260h30v40h-30zM335 340h30v40h-30zM205 460h50v60h-50z"/>
       </g>
-      <g class="xhair"><path d="M0 330H480M400 0V560" stroke="var(--brick)" stroke-width="1" stroke-dasharray="3 5"/><circle cx="400" cy="330" r="7" fill="none" stroke="var(--brick)" stroke-width="1.5"/></g>
+      <g class="xhair"><path d="M0 330H480M400 0V560" stroke="var(--brick)" stroke-width="1" stroke-dasharray="3 5"/><circle cx="400" cy="330" r="7" fill="none" stroke="var(--brick)" stroke-width="1.5"/><circle class="ring" cx="400" cy="330" r="7" fill="none" stroke="var(--brick)" stroke-width="1"/></g>
     </svg>
     <figcaption class="mono">Fig. 1 — Stylised elevation on a coordinate grid. Illustrative, not a real listing.</figcaption>
   </figure>
 </section>
+
+<div class="ticker" aria-hidden="true"><div class="tk"><span>neighbourhood_group</span><span>neighbourhood</span><span>latitude</span><span>longitude</span><span>price</span><span>minimum_nights</span><span>number_of_reviews</span><span>reviews_per_month</span><span>calculated_host_listings_count</span><span>availability_365</span><span>neighbourhood_group</span><span>neighbourhood</span><span>latitude</span><span>longitude</span><span>price</span><span>minimum_nights</span><span>number_of_reviews</span><span>reviews_per_month</span><span>calculated_host_listings_count</span><span>availability_365</span></div></div>
 
 <section class="work" id="predictor">
   <header class="sec-head">
@@ -56,12 +59,13 @@
     <p>Enter a listing's ten recorded features. The model returns a room type and the probability it assigns to every class.</p>
   </header>
   <div class="grid">
+    <datalist id="dl-group"></datalist><datalist id="dl-hood"></datalist>
     <form id="form" novalidate aria-describedby="form-msg">
       <fieldset>
         <legend>Where it is</legend>
         <div class="row2">
-          <div class="f"><label for="neighbourhood_group">Neighbourhood group</label><input id="neighbourhood_group" name="neighbourhood_group" type="text" required autocomplete="off" aria-describedby="neighbourhood_group-h neighbourhood_group-e"><small id="neighbourhood_group-h">Borough, e.g. Manhattan</small><span class="err" id="neighbourhood_group-e" aria-live="polite"></span></div>
-          <div class="f"><label for="neighbourhood">Neighbourhood</label><input id="neighbourhood" name="neighbourhood" type="text" required autocomplete="off" aria-describedby="neighbourhood-h neighbourhood-e"><small id="neighbourhood-h">Area name, e.g. Midtown</small><span class="err" id="neighbourhood-e" aria-live="polite"></span></div>
+          <div class="f"><label for="neighbourhood_group">Neighbourhood group</label><input id="neighbourhood_group" name="neighbourhood_group" type="text" list="dl-group" required autocomplete="off" aria-describedby="neighbourhood_group-h neighbourhood_group-e"><small id="neighbourhood_group-h">Pick a borough from the list</small><span class="err" id="neighbourhood_group-e" aria-live="polite"></span></div>
+          <div class="f"><label for="neighbourhood">Neighbourhood</label><input id="neighbourhood" name="neighbourhood" type="text" list="dl-hood" required autocomplete="off" aria-describedby="neighbourhood-h neighbourhood-e"><small id="neighbourhood-h">Suggestions follow the borough</small><span class="err" id="neighbourhood-e" aria-live="polite"></span></div>
           <div class="f"><label for="latitude">Latitude</label><input id="latitude" name="latitude" type="number" step="any" min="-90" max="90" required inputmode="decimal" aria-describedby="latitude-h latitude-e"><small id="latitude-h">−90 to 90</small><span class="err" id="latitude-e" aria-live="polite"></span></div>
           <div class="f"><label for="longitude">Longitude</label><input id="longitude" name="longitude" type="number" step="any" min="-180" max="180" required inputmode="decimal" aria-describedby="longitude-h longitude-e"><small id="longitude-h">−180 to 180</small><span class="err" id="longitude-e" aria-live="polite"></span></div>
         </div>
