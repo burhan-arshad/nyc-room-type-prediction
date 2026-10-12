@@ -2,7 +2,8 @@
 
 **Every stay has a pattern.** A machine learning project that predicts an Airbnb listing's room type (*Entire home/apt*, *Private room*, *Shared room*) from its location, price, reviews and availability, with an animated single-page frontend.
 
-> **Live demo:** ` https://nyc-room-type-prediction-2-6ue0.onrender.com`
+> **Live demo:** https://nyc-room-type-prediction-2-6ue0.onrender.com
+
 > **Repository:** https://github.com/burhan-arshad/nyc-room-type-prediction
 
 Independent student project. Not affiliated with Airbnb. It uses historical public data, not live listings.
