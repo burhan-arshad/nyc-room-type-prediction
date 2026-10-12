@@ -67,10 +67,11 @@ Response shape (values are illustrative):
 
 ## Frontend features
 
+- One-screen predictor: headline and form side by side, with an animated skyline and drifting colour background.
 - Borough and neighbourhood suggestions that follow each other; picking a neighbourhood fills in its borough.
-- Live listing sheet, inline validation, demo preset, duplicate-submit protection.
+- Inline validation, demo preset, duplicate-submit protection, copyable results.
 - Real API status indicator, driven by a request to `GET /`.
-- Animated hero, scroll progress, staged reveals, animated probability bars. Honors `prefers-reduced-motion`.
+- Animated headline, probability bars and percentage count-up. Honors `prefers-reduced-motion`.
 
 ## Project structure
 
