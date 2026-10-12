@@ -2,6 +2,16 @@ from fastapi import FastAPI
 import pandas as pd
 from pydantic import BaseModel, Field
 import joblib
+from fastapi.middleware.cors import CORSMiddleware
+
+app=FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 model=joblib.load('Model_Pipeline.pkl')
 
@@ -24,7 +34,7 @@ class Features(BaseModel):
     neighbourhood: str = Field(..., min_length=1, description="Specific neighbourhood name")
     
 
-app=FastAPI()
+
 
 @app.get('/')
 def greet():
@@ -32,6 +42,12 @@ def greet():
 
 @app.post('/predict')
 def predict(features: Features):
-    row=pd.DataFrame(features.dict(), columns=COLUMNS, index=[0])
-    prediction = model.predict(row)
-    return {"prediction": prediction[0]}
+    row = pd.DataFrame([features.dict()], columns=COLUMNS)
+    prediction  = model.predict(row)
+    probability = model.predict_proba(row)
+
+    return {
+    "Predicted_room_type": str(prediction[0]),
+    "Classes": model.classes_.tolist(),
+    "Probability": probability.tolist()[0]
+}
