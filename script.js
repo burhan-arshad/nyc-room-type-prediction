@@ -1,7 +1,7 @@
 "use strict";
 
 // ---- Configuration: the only place the backend URL is set ----
-const API_BASE_URL = "YOUR_DEPLOYED_FASTAPI_URL";
+const API_BASE_URL = " https://nyc-room-type-prediction-1-btb1.onrender.com";
 
 const FIELDS = [
   "neighbourhood_group", "neighbourhood", "latitude", "longitude", "price",
