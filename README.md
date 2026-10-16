@@ -125,5 +125,3 @@ For local testing only, temporarily set `API_BASE_URL` in `frontend/script.js` t
 
 **Burhan Arshad**, Computer Science Student | AI & Machine Learning Developer
 
-- Portfolio: https://burhan.cypherai.tech
-- GitHub: https://github.com/burhan-arshad
