@@ -1,4 +1,4 @@
-# Airbnb Room Type Predictor
+
 
 **Every stay has a pattern.** A machine learning project that predicts an Airbnb listing's room type (*Entire home/apt*, *Private room*, *Shared room*) from its location, price, reviews and availability, with an animated single-page frontend.
 
